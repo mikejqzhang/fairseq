@@ -1,13 +1,10 @@
 import gzip
 import json
 import multiprocessing
-import multiprocessing.dummy
-import os
 
 import bs4
 from glob import glob
 from spacy.lang.en import English
-
 
 MAX_TOKENS=5
 
@@ -24,6 +21,7 @@ def _convert_qa_to_qgen(input_path):
             question_text = json_example["question_text"]
             document_html = json_example["document_html"].encode("utf-8")
             doc_tokens = json_example['document_tokens']
+            doc_title = json_example['document_title']
 
             for annotation in json_example["annotations"]:
                 for sa in annotation["short_answers"]:
@@ -83,50 +81,44 @@ def _convert_qa_to_qgen(input_path):
                             
                         sent_ex = {'question':question_text,
                                    'context': context_sent_text,
+                                   'title': doc_title,
                                    'answer': answer_text}
                         block_ex = {'question':question_text,
                                     'context': context_text,
+                                    'title': doc_title,
                                     'answer': answer_text}
                         if sent_ex not in sent_data and answer_text in context_sent_text:
                             sent_data.append(sent_ex)
                         if block_ex not in block_data:
                             block_data.append(block_ex)
-                        # if len(block_data) == 11:
-                        #     print()
-                        #     print([x['token'] for x in doc_tokens[context_start-10:context_end+10]])
-                        #     print()
-                        #     print([x['token'] for x in doc_tokens[context_start:context_end]])
-                        #     print()
-                        #     print(block_ex)
-                        #     print()
-                        #     print(doc_tokens[context_start]['token'])
-                        #     print(doc_tokens[context_start]['token'] in ['<Td>'])
-                        #     exit()
     return sent_data, block_data
 
 
-split = 'train'
-input_pattern = f'/data/mjqzhang/original_nq/v1.0/{split}/*'
-sent_out_path = f'/data/mjqzhang/question_generation/nq_qgen/{split}.sent.jsonl'
-block_out_path = f'/data/mjqzhang/question_generation/nq_qgen/{split}.block.jsonl'
-num_threads = 12
+if __name__ == '__main__':
+    splits = ['train', 'dev']
+    # splits = ['sample']
+    for split in splits:
+        input_pattern = f'/data/mjqzhang/original_nq/v1.0/{split}/*'
+        sent_out_path = f'/data/mjqzhang/question_generation/nq_qgen/{split}.sent.jsonl'
+        block_out_path = f'/data/mjqzhang/question_generation/nq_qgen/{split}.block.jsonl'
+        num_threads = 12
 
-input_paths = glob(input_pattern)
+        input_paths = glob(input_pattern)
 
-# sent_data, block_data = _convert_qa_to_qgen(input_paths[0])
+        # sent_data, block_data = _convert_qa_to_qgen(input_paths[0])
 
-pool = multiprocessing.Pool(num_threads)
-sent_block_shards = pool.map(_convert_qa_to_qgen, input_paths)
-sent_data, block_data = zip(*sent_block_shards)
-sent_data = [ex for shard in sent_data for ex in shard]
-block_data = [ex for shard in block_data for ex in shard]
+        pool = multiprocessing.Pool(num_threads)
+        sent_block_shards = pool.map(_convert_qa_to_qgen, input_paths)
+        sent_data, block_data = zip(*sent_block_shards)
+        sent_data = [ex for shard in sent_data for ex in shard]
+        block_data = [ex for shard in block_data for ex in shard]
 
 
-with open(sent_out_path, 'w') as output_file:
-    for ex in sent_data:
-        output_file.write(json.dumps(ex))
-        output_file.write('\n')
-with open(block_out_path, 'w') as output_file:
-    for ex in block_data:
-        output_file.write(json.dumps(ex))
-        output_file.write('\n')
+        with open(sent_out_path, 'w') as output_file:
+            for ex in sent_data:
+                output_file.write(json.dumps(ex))
+                output_file.write('\n')
+        with open(block_out_path, 'w') as output_file:
+            for ex in block_data:
+                output_file.write(json.dumps(ex))
+                output_file.write('\n')
