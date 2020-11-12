@@ -1,10 +1,12 @@
 DATA_PATH=/data/mjqzhang/question_generation
 
-TASK=nqgen_sent
+# TASK=nqgen_sent
+# TASK=nqgen_block
+TASK=nqgen_sent_v2
 
-TOTAL_NUM_UPDATES=20000  
-WARMUP_UPDATES=500      
-LR=3e-05
+TOTAL_NUM_UPDATES=100000
+WARMUP_UPDATES=5000
+LR=2e-05
 MAX_TOKENS=2048
 UPDATE_FREQ=4
 BART_PATH=$DATA_PATH/bart/bart.large/model.pt

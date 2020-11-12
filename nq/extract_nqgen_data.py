@@ -18,7 +18,7 @@ def _convert_qa_to_qgen(input_path):
     nlp.add_pipe(sentencizer)
 
     sent_data = []
-    block_data = []
+    # block_data = []
     with gzip.open(input_path) as input_file:
         for line in input_file:
             json_example = json.loads(line)
@@ -52,14 +52,24 @@ def _convert_qa_to_qgen(input_path):
 
                         start_byte = doc_tokens[context_start]["start_byte"]
                         end_byte = doc_tokens[context_end]["end_byte"]
-                        start_nl_idx = document_html[start_byte:sa["start_byte"]].rfind(b'\n')
-                        end_nl_idx = document_html[sa["end_byte"]:end_byte].find(b'\n')
-                        if start_nl_idx != -1:
-                            start_byte = start_byte + start_nl_idx + 1
-                        if end_nl_idx != -1:
-                            end_byte = sa["end_byte"] + end_nl_idx
-                        context_html = document_html[start_byte:end_byte].decode()
 
+                        # block_context_html = document_html[start_byte:end_byte]
+                        # block_context_html = block_context_html.decode()
+                        # block_context_soup = bs4.BeautifulSoup(block_context_html, "lxml")
+                        # for el in block_context_soup.find_all("a", href=True):
+                        #     if '#cite' in el['href']:
+                        #         el.decompose()
+                        # block_context_text = block_context_soup.text.replace('\n', ' ')
+
+
+                        # start_nl_idx = document_html[start_byte:sa["start_byte"]].rfind(b'\n')
+                        # end_nl_idx = document_html[sa["end_byte"]:end_byte].find(b'\n')
+                        # if start_nl_idx != -1:
+                        #     start_byte = start_byte + start_nl_idx + 1
+                        # if end_nl_idx != -1:
+                        #     end_byte = sa["end_byte"] + end_nl_idx
+
+                        context_html = document_html[start_byte:end_byte].decode()
                         context_soup = bs4.BeautifulSoup(context_html, "lxml")
                         for el in context_soup.find_all("a", href=True):
                             if '#cite' in el['href']:
@@ -123,28 +133,24 @@ def _convert_qa_to_qgen(input_path):
                                    'context': context_sent_text.strip(),
                                    'title': doc_title,
                                    'answer': answer_text}
-                        block_ex = {'question':question_text,
-                                    'context': context_text.strip(),
-                                    'title': doc_title,
-                                    'answer': answer_text}
+                        # block_ex = {'question':question_text,
+                        #             'context': context_text.strip(),
+                        #             'title': doc_title,
+                        #             'answer': answer_text}
                         if sent_ex not in sent_data and answer_text in context_sent_text:
                             sent_data.append(sent_ex)
-                        if block_ex not in block_data:
-                            block_data.append(block_ex)
-    return sent_data, block_data
+    return sent_data
 
 
 if __name__ == '__main__':
-    # splits = ['train', 'dev']
-    splits = ['sample']
+    splits = ['train', 'dev']
+    # splits = ['sample']
     num_threads = 12
 
     for split in splits:
         input_pattern = f'/data/mjqzhang/original_nq/v1.0/{split}/*'
-        sent_dir = f'/data/mjqzhang/question_generation/nqgen_sent'
-        block_dir = f'/data/mjqzhang/question_generation/nqgen_block'
+        sent_dir = f'/data/mjqzhang/question_generation/nqgen_sent_extracted'
         os.makedirs(sent_dir, exist_ok=True)
-        os.makedirs(block_dir, exist_ok=True)
 
 
         input_paths = glob(input_pattern)
@@ -152,33 +158,14 @@ if __name__ == '__main__':
         # sent_data, block_data = _convert_qa_to_qgen(input_paths[0])
 
         # sent_block_shards = [_convert_qa_to_qgen(ip) for ip in input_paths]
-        # sent_data, block_data = zip(*sent_block_shards)
+        # sent_data = zip(*sent_block_shards)
         # sent_data = [ex for shard in sent_data for ex in shard]
-        # block_data = [ex for shard in block_data for ex in shard]
 
         pool = multiprocessing.Pool(num_threads)
         sent_block_shards = pool.map(_convert_qa_to_qgen, input_paths)
-        sent_data, block_data = zip(*sent_block_shards)
+        sent_data = zip(*sent_block_shards)
         sent_data = [ex for shard in sent_data for ex in shard]
-        block_data = [ex for shard in block_data for ex in shard]
 
-
-        with open(os.path.join(sent_dir, f'{split}.src'), 'w') as sent_src_f, \
-                open(os.path.join(sent_dir, f'{split}.tgt'), 'w') as sent_tgt_f:
-            for i, ex in enumerate(sent_data):
-                question = ex['question']
-                context = ex['context']
-                title = ex['title']
-                answer = ex['answer']
-                sent_src_f.write(f'{title} {CONTEXT_TOK} {context} {ANSWER_TOK} {answer}\n')
-                sent_tgt_f.write(f'{question}\n')
-
-        with open(os.path.join(block_dir, f'{split}.src'), 'w') as block_src_f, \
-                open(os.path.join(block_dir, f'{split}.tgt'), 'w') as block_tgt_f:
+        with open(os.path.join(sent_dir, f'{split}.src'), 'w') as f:
             for ex in sent_data:
-                question = ex['question']
-                context = ex['context']
-                title = ex['title']
-                answer = ex['answer']
-                block_src_f.write(f'{title} {CONTEXT_TOK} {context} {ANSWER_TOK} {answer}\n')
-                block_tgt_f.write(f'{question}\n')
+                f.write(json.dumps(ex) + '\n')
