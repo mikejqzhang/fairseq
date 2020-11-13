@@ -38,7 +38,8 @@ def get_questions(data):
                        'filtered_context': filtered_summary.strip(),
                        'title': title,
                        'answer': ans,
-                       'highlighted_values': highlighted_values}
+                       'highlighted_values': highlighted_values,
+                       }
             question_data.append(sent_ex)
     return question_data
 
@@ -52,21 +53,21 @@ with open(input_path.format(split), 'r') as f:
 
 question_data = get_questions(data)
 
-os.makedirs(output_dir, exist_ok=True)
-with open(os.path.join(output_dir, f'{split}.src'), 'w') as output_src_f:
-    for ex in question_data:
-        title = ex['title']
-        context = ex['context']
-        answer = ex['answer']
-        output_src_f.write(f'{title} {CONTEXT_TOK} {context} {ANSWER_TOK} {answer}\n')
-
-with open(os.path.join(output_dir, f'{split}.hvs'), 'w') as output_src_f:
-    for ex in question_data:
-        output_src_f.write(json.dumps(ex['highlighted_values']) + '\n')
-
-with open(os.path.join(output_dir, f'{split}.fsrc'), 'w') as output_src_f:
-    for ex in question_data:
-        title = ex['title']
-        context = ex['filtered_context']
-        answer = ex['answer']
-        output_src_f.write(f'{title} {CONTEXT_TOK} {context} {ANSWER_TOK} {answer}\n')
+# os.makedirs(output_dir, exist_ok=True)
+# with open(os.path.join(output_dir, f'{split}.src'), 'w') as output_src_f:
+#     for ex in question_data:
+#         title = ex['title']
+#         context = ex['context']
+#         answer = ex['answer']
+#         output_src_f.write(f'{title} {CONTEXT_TOK} {context} {ANSWER_TOK} {answer}\n')
+# 
+# with open(os.path.join(output_dir, f'{split}.hvs'), 'w') as output_src_f:
+#     for ex in question_data:
+#         output_src_f.write(json.dumps(ex['highlighted_values']) + '\n')
+# 
+# with open(os.path.join(output_dir, f'{split}.fsrc'), 'w') as output_src_f:
+#     for ex in question_data:
+#         title = ex['title']
+#         context = ex['filtered_context']
+#         answer = ex['answer']
+#         output_src_f.write(f'{title} {CONTEXT_TOK} {context} {ANSWER_TOK} {answer}\n')
