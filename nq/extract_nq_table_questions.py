@@ -13,9 +13,11 @@ def _convert_qa_to_qgen(input_path):
     nlp.add_pipe(sentencizer)
 
     filtered_questions = []
+    filtered_examples = []
     with gzip.open(input_path) as input_file:
         for line in input_file:
             json_example = json.loads(line)
+            example_id = json_example['example_id']
             question_text = json_example["question_text"]
             document_html = json_example["document_html"].encode("utf-8")
             doc_tokens = json_example['document_tokens']
@@ -43,8 +45,13 @@ def _convert_qa_to_qgen(input_path):
                         break
             if in_table:
                 filtered_questions.append(question_text)
+                filtered_examples.append({
+                    "question": question_text,
+                    "example_id": example_id
+                    })
 
-    return filtered_questions
+    # return filtered_questions
+    return filtered_examples
 
 
 if __name__ == '__main__':
@@ -56,7 +63,8 @@ if __name__ == '__main__':
 
     for split in splits:
         input_pattern = f'/data/mjqzhang/original_nq/v1.0/{split}/*'
-        output_path = f'/data/mjqzhang/question_generation/nq_filtered.{split}.txt'
+        # output_path = f'/data/mjqzhang/question_generation/nq_filtered.{split}.txt'
+        output_path = f'/data/mjqzhang/question_generation/nq_filtered_ex.{split}.txt'
         input_paths = glob(input_pattern)
 
         # filtered_question_shards = [_convert_qa_to_qgen(ip) for ip in input_paths]
@@ -66,6 +74,9 @@ if __name__ == '__main__':
         filtered_question_shards = pool.map(_convert_qa_to_qgen, input_paths)
         filtered_questions = [ex for shard in filtered_question_shards for ex in shard]
 
+        # with open(output_path, 'w') as f:
+        #     for question in filtered_questions:
+        #         f.write(f'{question}\n')
         with open(output_path, 'w') as f:
-            for question in filtered_questions:
-                f.write(f'{question}\n')
+            for ex in filtered_questions:
+                f.write(json.dumps(ex) + '\n')

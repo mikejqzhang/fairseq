@@ -1,14 +1,18 @@
 import json
 import argparse
+import torch
+from fairseq.models.bart import BARTModel
+
+bart = BARTModel.from_pretrained(
+	'/data/mjqzhang/question_generation/saved_models/nqgen_sent_v2',
+    checkpoint_file='checkpoint_best.pt',
+    data_name_or_path='/data/mjqzhang/question_generation/nqgen_sent_v2-bin'
+)
 
 def postprocess(args):
-    vocab_path = '/data/mjqzhang/question_generation/bart/encoder.json'
-    with open(vocab_path) as f:
-        tok2idx = json.load(f)
-    idx2tok = {idx: tok for tok, idx in tok2idx.items()}
     with open(args.hyp_path) as inp_f, open(args.hyp_path + '.post', 'w') as out_f:
         for line in inp_f:
-            post_line = [idx2tok[int(idx)] for idx in line.split()]
+            post_line = bart.decode(line)
             out_f.write(' '.join(post_line) + '\n')
 
 

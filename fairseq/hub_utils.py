@@ -137,7 +137,18 @@ class GeneratorHubInterface(nn.Module):
             return self.sample_nbest([sentences], beam=beam, verbose=verbose, **kwargs)[0]
         tokenized_sentences = [self.encode(sentence) for sentence in sentences]
         batched_hypos = self.generate(tokenized_sentences, beam, verbose, **kwargs)
-        return [[self.decode(hypo["tokens"]) for hypo in nb_hypos] for nb_hypos in batched_hypos]
+        batched_hypos_text = [[self.decode(hypo["tokens"]) for hypo in nb_hypos] for nb_hypos in batched_hypos]
+        batched_hypos_score = [[hypo["score"].item() for hypo in nb_hypos] for nb_hypos in batched_hypos]
+        sample_outputs = [{'source': sent, 'hypos': hypos, 'scores': scores}
+                for sent, hypos, scores in zip(sentences, batched_hypos_text, batched_hypos_score)]
+        return sample_outputs
+
+        # return [[self.decode(hypo["tokens"]) for hypo in nb_hypos] for nb_hypos in batched_hypos]
+        # samples = [
+        #         {'source': sent,
+        #          'hypos': [[self.decode(hypo["score"]), self.decode(hypo["tokens"])] for hypo in nb_hypos]}
+        #         for sent, nb_hypos in zip(sentences, batched_hypos)]
+        # return samples
 
     def score(self, sentences: List[str], **kwargs):
         if isinstance(sentences, str):
@@ -175,13 +186,20 @@ class GeneratorHubInterface(nn.Module):
 
         inference_step_args = inference_step_args or {}
         results = []
-        for batch in self._build_batches(tokenized_sentences, skip_invalid_size_inputs):
-            batch = utils.apply_to_sample(lambda t: t.to(self.device), batch)
-            translations = self.task.inference_step(
-                generator, self.models, batch, **inference_step_args
-            )
-            for id, hypos in zip(batch["id"].tolist(), translations):
-                results.append((id, hypos))
+        # for batch in self._build_batches(tokenized_sentences, skip_invalid_size_inputs):
+        #     batch = utils.apply_to_sample(lambda t: t.to(self.device), batch)
+        #     translations = self.task.inference_step(
+        #         generator, self.models, batch, **inference_step_args
+        #     )
+        #     for id, hypos in zip(batch["id"].tolist(), translations):
+        #         results.append((id, hypos))
+        batch = self._build_sample(tokenized_sentences)
+        batch = utils.apply_to_sample(lambda t: t.to(self.device), batch)
+        translations = self.task.inference_step(
+            generator, self.models, batch, **inference_step_args
+        )
+        for id, hypos in zip(batch["id"].tolist(), translations):
+            results.append((id, hypos))
 
         # sort output to match input order
         outputs = [hypos for _, hypos in sorted(results, key=lambda x: x[0])]

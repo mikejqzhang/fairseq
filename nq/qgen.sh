@@ -1,7 +1,7 @@
 gpu_id=${1:-0}
 
-model_path=/data/mjqzhang/question_generation/saved_models/nqgen_sent/checkpoint_best.pt
-data_path=/data/mjqzhang/question_generation/totto_qgen_head-bin
+model_path=/data/mjqzhang/question_generation/saved_models/nqgen_sent_v2/checkpoint_best.pt
+data_path=/data/mjqzhang/question_generation/nqgen_sent_v2-bin
 date=$(date '+%m-%d-%Y')
 
 min_len=5
@@ -14,24 +14,24 @@ out_dir=/data/mjqzhang/question_generation/outputs
 out_file=${out_dir}/totto_${beam_width}.out
 mkdir -p ${out_dir}
 
-CUDA_VISIBLE_DEVICES=0 fairseq-generate \
-  $data_path \
-  --device-id 0 \
-  --path $model_path  \
-  --task translation   \
-  --remove-bpe  \
-  --gen-subset train \
-  --batch-size 1  \
-  --min-len ${min_len}  \
-  --max-len-a ${max_len_scale}  \
-  --max-len-b ${max_len_const}  \
-  --max-target-positions 8000  \
-  --max-source-positions 8000  \
-  --beam ${beam_width}  \
-  --nbest ${n_hyps} \
-  | tee ${out_file}
-
-grep ^H ${out_file} | cut -f3- > ${out_file}.hyp
+# CUDA_VISIBLE_DEVICES=0 fairseq-generate \
+#   $data_path \
+#   --device-id 0 \
+#   --path $model_path  \
+#   --task translation   \
+#   --remove-bpe  \
+#   --gen-subset train \
+#   --batch-size 1  \
+#   --min-len ${min_len}  \
+#   --max-len-a ${max_len_scale}  \
+#   --max-len-b ${max_len_const}  \
+#   --max-target-positions 8000  \
+#   --max-source-positions 8000  \
+#   --beam ${beam_width}  \
+#   --nbest ${n_hyps} \
+#   | tee ${out_file}
+# 
+# grep ^H ${out_file} | cut -f3- > ${out_file}.hyp
 
 python nq/postprocess.py  ${out_file}.hyp
 

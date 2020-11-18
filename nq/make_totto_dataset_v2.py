@@ -63,8 +63,8 @@ input_path = '/data/mjqzhang/totto_data/totto_{}_data.jsonl'
 output_dir = '/data/mjqzhang/question_generation/totto_qgen/v2'
 os.makedirs(output_dir, exist_ok=True)
 
-splits = ['dev']
-# splits = ['train']
+# splits = ['dev']
+splits = ['train']
 for split in splits:
 
     with open(input_path.format(split), 'r') as f:
@@ -83,16 +83,16 @@ for split in splits:
             answer = ex['answer']
             f.write(f'{title} {CONTEXT_TOK} {context} {ANSWER_TOK} {answer}\n')
 
-    with open(os.path.join(output_dir, f'{split}_og_maxans_{MAX_ANS}.src'), 'w') as f:
-        for ex in tqdm(question_data):
-            title = ex['title']
-            context = ex['og_context']
-            answer = ex['answer']
-            f.write(f'{title} {CONTEXT_TOK} {context} {ANSWER_TOK} {answer}\n')
+    # with open(os.path.join(output_dir, f'{split}_og_maxans_{MAX_ANS}.src'), 'w') as f:
+    #     for ex in tqdm(question_data):
+    #         title = ex['title']
+    #         context = ex['og_context']
+    #         answer = ex['answer']
+    #         f.write(f'{title} {CONTEXT_TOK} {context} {ANSWER_TOK} {answer}\n')
 
-    with open(os.path.join(output_dir, f'{split}_del_maxans_{MAX_ANS}.src'), 'w') as f:
-        for ex in tqdm(question_data):
-            title = ex['title']
-            context = ex['del_context']
-            answer = ex['answer']
-            f.write(f'{title} {CONTEXT_TOK} {context} {ANSWER_TOK} {answer}\n')
+    # with open(os.path.join(output_dir, f'{split}_del_maxans_{MAX_ANS}.src'), 'w') as f:
+    #     for ex in tqdm(question_data):
+    #         title = ex['title']
+    #         context = ex['del_context']
+    #         answer = ex['answer']
+    #         f.write(f'{title} {CONTEXT_TOK} {context} {ANSWER_TOK} {answer}\n')
