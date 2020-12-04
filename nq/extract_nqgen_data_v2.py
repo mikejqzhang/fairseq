@@ -101,7 +101,7 @@ def _convert_qa_to_qgen(input_path):
 
 if __name__ == '__main__':
     # splits = ['train', 'dev']
-    # splits = ['sample']
+    splits = ['sample']
     # splits = ['dev']
     num_threads = 12
 
@@ -121,9 +121,9 @@ if __name__ == '__main__':
         print('Skipped {} over {} examples and kept {} out of {}'.format(
             split, len(skipped_data), len(sent_data), len(skipped_data) + len(sent_data)))
 
-        with open(os.path.join(sent_dir, f'{split}.jsonl'), 'w') as f:
-            for ex in sent_data:
-                f.write(json.dumps(ex) + '\n')
-        with open(os.path.join(sent_dir, f'{split}.skip.jsonl'), 'w') as f:
-            for ex in skipped_data:
-                f.write(json.dumps(ex) + '\n')
+        # with open(os.path.join(sent_dir, f'{split}.jsonl'), 'w') as f:
+        #     for ex in sent_data:
+        #         f.write(json.dumps(ex) + '\n')
+        # with open(os.path.join(sent_dir, f'{split}.skip.jsonl'), 'w') as f:
+        #     for ex in skipped_data:
+        #         f.write(json.dumps(ex) + '\n')

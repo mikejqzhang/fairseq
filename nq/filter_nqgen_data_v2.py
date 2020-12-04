@@ -55,7 +55,7 @@ for ex in tqdm(all_data):
 #         tgt_line = f"{ex['question_rewrite']}\n"
 #         tgt_f.write(tgt_line)
 
-with open(f'/data/mjqzhang/question_generation/nq_table_filtered_no_dates.{split}.txt', 'w') as tgt_f:
-    for ex in all_data:
-        tgt_line = f"{ex['question_rewrite']}\n"
-        tgt_f.write(tgt_line)
+# with open(f'/data/mjqzhang/question_generation/nq_table_filtered_no_dates.{split}.txt', 'w') as tgt_f:
+#     for ex in all_data:
+#         tgt_line = f"{ex['question_rewrite']}\n"
+#         tgt_f.write(tgt_line)
