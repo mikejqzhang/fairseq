@@ -1,5 +1,4 @@
 DATA_PATH=/data/mjqzhang/question_generation
-# TASK=nqgen_sent_v2
 
 TASK=nqgen_full
 # TASK=nqgen_date_filtered
