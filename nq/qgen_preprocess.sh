@@ -1,8 +1,8 @@
 DATA_PATH=/data/mjqzhang/question_generation
+# TASK=nqgen_sent_v2
 
-# TASK=nqgen_block
-# TASK=nqgen_sent
-TASK=nqgen_sent_v2
+TASK=nqgen_full
+# TASK=nqgen_date_filtered
 
 for SPLIT in train dev
 do

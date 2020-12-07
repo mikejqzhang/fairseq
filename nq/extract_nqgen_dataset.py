@@ -107,7 +107,7 @@ if __name__ == '__main__':
 
     for split in splits:
         input_pattern = f'/data/mjqzhang/original_nq/v1.0/{split}/*'
-        sent_dir = f'/data/mjqzhang/question_generation/nqgen_sent_v2'
+        sent_dir = f'/data/mjqzhang/question_generation/nqgen_extracted'
         os.makedirs(sent_dir, exist_ok=True)
 
         input_paths = glob(input_pattern)
@@ -121,9 +121,6 @@ if __name__ == '__main__':
         print('Skipped {} over {} examples and kept {} out of {}'.format(
             split, len(skipped_data), len(sent_data), len(skipped_data) + len(sent_data)))
 
-        # with open(os.path.join(sent_dir, f'{split}.jsonl'), 'w') as f:
-        #     for ex in sent_data:
-        #         f.write(json.dumps(ex) + '\n')
-        # with open(os.path.join(sent_dir, f'{split}.skip.jsonl'), 'w') as f:
-        #     for ex in skipped_data:
-        #         f.write(json.dumps(ex) + '\n')
+        with open(os.path.join(sent_dir, f'{split}.jsonl'), 'w') as f:
+            for ex in sent_data:
+                f.write(json.dumps(ex) + '\n')
